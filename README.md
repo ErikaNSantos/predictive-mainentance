@@ -53,16 +53,14 @@ In addition, a global `Machine failure` flag indicates whether a machine failure
 ```text
 predictive-maintenance/
 │
+├── images/
+│   ├── overview.png
+│   ├── rule-validation.png
+│   └── classification.png
+│
 ├── ai4i2020.csv
-│   Original dataset
-│
 ├── manutencao-preditiva.py
-│   Data audit, rule validation,
-│   feature engineering and model training
-│
 ├── dashboard.py
-│   Streamlit analytical dashboard
-│
 └── README.md
 ```
 
@@ -213,23 +211,48 @@ The Streamlit dashboard consolidates the analysis into three sections.
 
 ### Overview
 
-* Dataset summary
-* Failure distributions
-* Failure rates by product type
-* Process variable exploration
+- Dataset summary
+- Failure distributions
+- Failure rates by product type
+- Process variable exploration
 
 ### Rule Validation
 
-* Visual inspection of reconstructed failure boundaries
-* Agreement analysis between rules and labels
-* Exploration of deterministic versus probabilistic mechanisms
+- Visual inspection of reconstructed failure boundaries
+- Agreement analysis between rules and labels
+- Exploration of deterministic versus probabilistic mechanisms
 
 ### Multi-Label Classification
 
-* F1-score comparison
-* Feature importance analysis
-* Performance gains from engineered features
+- F1-score comparison
+- Feature importance analysis
+- Performance gains from engineered features
 
+---
+
+## Dashboard Preview
+
+### Overview
+
+![Overview Dashboard](images/overview.png)
+
+Summary metrics, failure distributions, and process-variable exploration.
+
+### Rule Validation
+
+![Rule Validation](images/rule-validation.png)
+
+Interactive visualization of reconstructed failure boundaries and agreement with documented rules.
+
+### Multi-Label Classification
+
+![Classification Results](images/classification.png)
+
+Comparison between baseline and engineered models, including F1-score improvements and feature importance analysis.
+
+---
+
+## Key Findings
 ---
 
 ## Key Findings
