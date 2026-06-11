@@ -54,7 +54,8 @@ In addition, a global `Machine failure` flag indicates whether a machine failure
 predictive-maintenance/
 │
 ├── images/
-│   ├── overview.png
+│   ├── overview-part1.png
+│   ├── overview-part2.png
 │   ├── rule-validation.png
 │   └── classification.png
 │
@@ -234,13 +235,14 @@ The Streamlit dashboard consolidates the analysis into three sections.
 
 ### Overview
 
-![Overview Dashboard](images/overview.png)
+![Overview Dashboard](images/overview-part1.png)
+![Overview Dashboard](images/overview-part2.png)
 
 Summary metrics, failure distributions, and process-variable exploration.
 
 ### Rule Validation
 
-![Rule Validation](images/rule-validation.png)
+![Rule Validation](images/rules-validation.png)
 
 Interactive visualization of reconstructed failure boundaries and agreement with documented rules.
 
