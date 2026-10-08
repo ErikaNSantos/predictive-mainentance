@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manutenção Preditiva: AI4I 2020</title>
+    <meta name="description" content="Validação das regras físicas de falha do dataset AI4I 2020 e classificação multi-label dos modos de falha, com e sem features derivadas da física." />
+    <meta property="og:title" content="Manutenção Preditiva: AI4I 2020" />
+    <meta property="og:description" content="Antes de treinar qualquer modelo, testei se as regras físicas documentadas explicam mesmo as falhas. Transformar essas regras em features levou o F1 de 0,65 para 0,98." />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("tema"); } catch (e) {}
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topo">
+      <div class="wrap">
+        <a class="marca" href="./"><span>M</span>Manutenção Preditiva</a>
+        <nav>
+          <a href="https://github.com/ErikaNSantos/predictive-mainentance">Código</a>
+          <button class="btn-tema" id="btn-tema" type="button" aria-label="Alternar tema"></button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap abertura">
+      <span class="selo">AI4I 2020 · Matzka (2020), UCI ML Repository</span>
+      <h1>As regras físicas explicam as falhas?</h1>
+      <p>Validação das regras documentadas do dataset AI4I 2020 e classificação multi-label dos cinco modos de falha, com e sem features derivadas dessas regras.</p>
+      <nav class="secoes" aria-label="Seções" style="margin-top:18px">
+        <a href="#visao">Visão geral</a>
+        <a href="#regras">Validação das regras</a>
+        <a href="#classificacao">Classificação</a>
+      </nav>
+    </div>
+
+    <div class="filtros">
+      <div class="wrap">
+        <div class="campo">Tipo de produto (visão geral)
+          <div class="alternar" role="group" aria-label="Tipo de produto" id="f-tipos"></div>
+        </div>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section class="bloco" id="visao" aria-labelledby="h-visao">
+        <h2 id="h-visao">Visão geral</h2>
+        <p class="lead">Uma linha de produção simulada, com sensores de temperatura, rotação, torque e desgaste da ferramenta. Cada registro é uma máquina num instante; L, M e H são as variantes de qualidade do produto (baixa, média e alta).</p>
+        <div class="tiles" id="tiles"></div>
+        <div class="grade-2" style="margin-top:16px">
+          <div class="cartao">
+            <p class="titulo-grafico">Taxa de falha por tipo de produto</p>
+            <p class="sub-grafico">% dos registros com parada da máquina</p>
+            <div class="grafico" id="g-tipo"></div>
+          </div>
+          <div class="cartao">
+            <p class="titulo-grafico">Ocorrências por modo de falha</p>
+            <p class="sub-grafico">Um registro pode ter mais de um modo</p>
+            <div class="grafico" id="g-modos"></div>
+          </div>
+        </div>
+        <div class="cartao" style="margin-top:16px">
+          <p class="titulo-grafico">Torque × rotação</p>
+          <p class="sub-grafico">As falhas se concentram nos extremos de potência: torque alto com rotação baixa, e o contrário.</p>
+          <div class="legenda" id="leg-dispersao"></div>
+          <div class="grafico" id="g-dispersao"></div>
+        </div>
+        <details class="tabela"><summary>Ver tabela</summary><div class="tabela-rolagem" id="t-visao"></div></details>
+      </section>
+
+      <section class="bloco" id="regras" aria-labelledby="h-regras">
+        <h2 id="h-regras">Validação das regras</h2>
+        <p class="lead">Cada modo de falha segue uma regra física descrita na documentação do dataset. Reconstruí as regras em Python e comparei com os rótulos reais, em todos os 10.000 registros.</p>
+        <div class="cartao">
+          <div class="tabela-rolagem" style="max-height:none" id="t-regras"></div>
+          <p class="insight"><strong>HDF, PWF e OSF batem 100%</strong>: são regras determinísticas. <strong>TWF</strong> tem 747 falsos positivos: a faixa de 200 a 240 min de desgaste junta trocas preventivas e falhas reais, um componente probabilístico. <strong>RNF</strong> fica de fora: é 0,1% de chance aleatória, sem regra a reconstruir.</p>
+        </div>
+        <div class="cartao" style="margin-top:16px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between">
+            <div>
+              <p class="titulo-grafico" id="titulo-regra"></p>
+              <p class="sub-grafico" id="sub-regra"></p>
+            </div>
+            <label class="campo">Regra
+              <select id="f-regra">
+                <option value="HDF">HDF · dissipação de calor</option>
+                <option value="PWF">PWF · potência</option>
+                <option value="OSF">OSF · sobrecarga</option>
+              </select>
+            </label>
+          </div>
+          <div class="legenda" id="leg-regra"></div>
+          <div class="grafico" id="g-regra"></div>
+        </div>
+      </section>
+
+      <section class="bloco" id="classificacao" aria-labelledby="h-classificacao">
+        <h2 id="h-classificacao">Classificação multi-label</h2>
+        <p class="lead">Dois Random Forest (MultiOutputClassifier, 200 árvores, classes balanceadas, 30% de teste estratificado): um só com as variáveis brutas, outro também com as três features derivadas das regras (ΔT, potência, desgaste × torque).</p>
+        <div class="tiles cinco" id="tiles-f1"></div>
+        <div class="grade-2" style="margin-top:16px">
+          <div class="cartao">
+            <p class="titulo-grafico">F1 por modo de falha</p>
+            <div class="legenda" id="leg-f1"></div>
+            <div class="grafico" id="g-f1"></div>
+          </div>
+          <div class="cartao">
+            <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+              <div>
+                <p class="titulo-grafico">Importância das features</p>
+                <p class="sub-grafico">Modelo com features derivadas · ★ = derivada da regra física</p>
+              </div>
+              <label class="campo">Modo
+                <select id="f-modo"></select>
+              </label>
+            </div>
+            <div class="grafico" id="g-importancia"></div>
+          </div>
+        </div>
+        <p class="insight"><strong>HDF, PWF e OSF</strong> melhoram muito quando o modelo enxerga o mecanismo da falha diretamente. <strong>TWF e RNF</strong> ficam em F1 = 0 com ou sem as features: o desgaste tem componente probabilístico e a falha aleatória não depende das variáveis de processo. Nenhuma feature recupera informação que não está no dado.</p>
+        <details class="tabela"><summary>Ver tabela</summary><div class="tabela-rolagem" id="t-f1"></div></details>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Feito por <a href="https://erikansantos.github.io">Érika Nogueira Santos</a> · <a href="https://erikansantos.github.io/projects/maintenance">estudo de caso no portfólio</a></span>
+        <span>Dados: AI4I 2020, Matzka (2020), UCI ML Repository · DOI 10.24432/C5HS5C</span>
+      </div>
+    </footer>
+
+    <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+    <script src="vendor/d3.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
